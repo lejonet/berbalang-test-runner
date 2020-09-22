@@ -1,4 +1,7 @@
 source_container = "berbalang-test"
+container_profiles = [
+    "berbalang"
+]
 
 [[test_spec]]
 test_cmd = "derp"
