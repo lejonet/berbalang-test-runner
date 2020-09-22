@@ -2,9 +2,12 @@ use serde::Deserialize;
 
 use std::fmt;
 use std::time::Duration;
+use std::io;
+use std::process::Command;
 
 #[derive(Deserialize)]
 pub struct TestSpecification {
+    pub name: String,
     pub test_cmd: String,
     pub nr_of_test_runs: u8,
     pub test_length: u16,
@@ -40,4 +43,37 @@ pub fn run(test_outline: TestOutline) {
     }
 
     println!("{}\nTotal amount of tests: {} Total run time: {} h", test_outline, total_nr_of_test_runs, total_run_time as f64/3600f64);
+
+    run_tests(test_outline);
+}
+
+fn run_tests(test_outline: TestOutline) {
+    let mut create_container_args = vec!["copy", &test_outline.source_container, "placeholder-target-container"];
+    for profile in &test_outline.container_profiles {
+        create_container_args.push("-p");
+        create_container_args.push(profile);
+    }
+    println!("{:#?}", create_container_args);
+    for test in &test_outline.test_spec {
+        create_container_args[2] = &test.name;
+        println!("{:#?}", create_container_args);
+    }
+}
+
+// Honestly stolen from the LXD crate (https://docs.rs/crate/lxd/0.1.8/source/src/lib.rs)
+fn lxc(args: Vec<String>) -> io::Result<()> {
+    let mut cmd = Command::new("lxc");
+    for arg in args.iter() {
+        cmd.arg(arg);
+    }
+
+    let status = cmd.spawn()?.wait()?;
+    if status.success() {
+        Ok(())
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::Other,
+            format!("LXD {:?} failed with {}", args, status)
+        ))
+    }
 }
