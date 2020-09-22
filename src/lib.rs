@@ -10,7 +10,7 @@ pub struct TestSpecification {
     pub name: String,
     pub test_cmd: String,
     pub nr_of_test_runs: u8,
-    pub test_length: u16,
+    pub test_length: u64,
 }
 
 #[derive(Deserialize)]
@@ -55,9 +55,21 @@ fn run_tests(test_outline: TestOutline) {
     }
     println!("{:#?}", create_container_args);
     for test in &test_outline.test_spec {
-        create_container_args[2] = &test.name;
-        println!("{:#?}", create_container_args);
+        let test_duration = Duration::new(test.test_length, 0);
+        for test_nr in 0..test.nr_of_test_runs {
+            let create_args = create_container_cmdline(&create_container_args, &test.name, test_nr);
+            println!("{:#?}", create_args);
+        }
     }
+}
+
+fn create_container_cmdline(args: &Vec<&str>, test_name: &str, test_nr: u8) -> Vec<String> {
+    let mut container_cmdline = Vec::<String>::new();
+    for arg in args {
+        container_cmdline.push(String::from(*arg));
+    }
+    container_cmdline[2] = format!("{}-{}", String::from(test_name), test_nr);
+    container_cmdline
 }
 
 // Honestly stolen from the LXD crate (https://docs.rs/crate/lxd/0.1.8/source/src/lib.rs)
