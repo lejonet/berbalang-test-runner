@@ -1,8 +1,9 @@
 use serde::Deserialize;
 
 use std::{fmt, thread, io};
+use std::io::Read;
 use std::time::Duration;
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::sync::mpsc;
 
 #[derive(Deserialize)]
@@ -83,11 +84,13 @@ fn run_tests(test_outline: TestOutline) {
 }
 
 fn lxc(args: &[&str]) -> io::Result<()> {
-    let mut cmd = Command::new("lxc");
-    cmd.args(args);
-
-    let output = cmd.spawn()?.wait_with_output()?;
-        println!("Output from command:\nstdout:\n{:#?}stderr:\n{:#?}", output.stdout, output.stderr);
+    let mut output = Command::new("lxc")
+        .args(args)
+        .stderr(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()?
+        .wait_with_output()?;
+        println!("Output from command:\nstdout:\n{}\nstderr:\n{}", String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr));
         if output.status.success() {
             Ok(())
         } else {
