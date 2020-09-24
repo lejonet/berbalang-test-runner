@@ -57,23 +57,20 @@ fn run_tests(test_outline: TestOutline) {
     for test in &test_outline.test_spec {
         let test_duration = Duration::new(test.test_length, 0);
         for test_nr in 0..test.nr_of_test_runs {
-            let create_args = create_container_cmdline(&create_container_args, &test.name, test_nr);
+            let test_name = &format!("{}-{}", test.name, test_nr);
+            let mut create_args = create_container_args.clone();
+            create_args[2] = test_name;
             println!("{:#?}", create_args);
+            println!("Copying {} to {}", test_outline.source_container, test_name);
+            lxc(&create_args);
+            println!("Starting {} container", test_name);
+            lxc(&["start", test_name]);
         }
     }
 }
 
-fn create_container_cmdline(args: &Vec<&str>, test_name: &str, test_nr: u8) -> Vec<String> {
-    let mut container_cmdline = Vec::<String>::new();
-    for arg in args {
-        container_cmdline.push(String::from(*arg));
-    }
-    container_cmdline[2] = format!("{}-{}", String::from(test_name), test_nr);
-    container_cmdline
-}
-
 // Honestly stolen from the LXD crate (https://docs.rs/crate/lxd/0.1.8/source/src/lib.rs)
-fn lxc(args: Vec<String>) -> io::Result<()> {
+fn lxc(args: &[&str]) -> io::Result<()> {
     let mut cmd = Command::new("lxc");
     for arg in args.iter() {
         cmd.arg(arg);
