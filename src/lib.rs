@@ -1,9 +1,9 @@
 use serde::Deserialize;
 
-use std::fmt;
+use std::{fmt, thread, io};
 use std::time::Duration;
-use std::io;
 use std::process::Command;
+use std::sync::mpsc;
 
 #[derive(Deserialize)]
 pub struct TestSpecification {
@@ -65,24 +65,35 @@ fn run_tests(test_outline: TestOutline) {
             lxc(&create_args);
             println!("Starting {} container", test_name);
             lxc(&["start", test_name]);
+            thread::sleep(Duration::new(5,0));
+            println!("Executing command '{}' in {} container and letting it run for {} s", test.test_cmd, test_name, test.test_length);
+            let (tx, rx) = mpsc::channel();
+            tx.send((test_name.clone(), test.test_cmd.clone()));
+            let test_thread = thread::spawn(move || {
+                let (name, cmd) = rx.recv().unwrap();
+                println!("This is {}, with cmd {}", name, cmd);
+                let container_cmd = format!("echo {} >> thing", cmd);
+                lxc(&["exec", &name, "--", &container_cmd]);
+                //lxc(&["exec", test_name, "--", cmd])
+            });
+            test_thread.join().unwrap();
+            lxc(&["stop", &test_name]);
         }
     }
 }
 
-// Honestly stolen from the LXD crate (https://docs.rs/crate/lxd/0.1.8/source/src/lib.rs)
 fn lxc(args: &[&str]) -> io::Result<()> {
     let mut cmd = Command::new("lxc");
-    for arg in args.iter() {
-        cmd.arg(arg);
-    }
+    cmd.args(args);
 
-    let status = cmd.spawn()?.wait()?;
-    if status.success() {
-        Ok(())
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::Other,
-            format!("LXD {:?} failed with {}", args, status)
-        ))
-    }
+    let output = cmd.spawn()?.wait_with_output()?;
+        println!("Output from command:\nstdout:\n{:#?}stderr:\n{:#?}", output.stdout, output.stderr);
+        if output.status.success() {
+            Ok(())
+        } else {
+            Err(io::Error::new(
+                io::ErrorKind::Other,
+                format!("LXD {:?} failed with {}", args, output.status)
+            ))
+        }
 }
