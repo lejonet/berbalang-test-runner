@@ -37,30 +37,44 @@ impl Default for Mode {
 #[derive(Deserialize, Serialize)]
 pub struct Config {
     pub job: Job,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub timeout: Option<String>,
     pub selection: Selection,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub num_islands: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub island_id: Option<usize>,
     pub crossover_period: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub crossover_algorithm: Option<String>,
     pub crossover_rate: f32,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<DataConfig>,
     pub max_init_len: usize,
     pub max_length: usize,
     pub min_init_len: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub mutation_rate: Option<f64>,
     pub mutation_exponent: f64,
     pub observer: ObserverConfig,
     pub pop_size: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub problems: Option<Vec<ClassificationProblem>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub roulette: Option<RouletteConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tournament: Option<TournamentConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub roper: Option<RoperConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub linear_gp: Option<LinearGpConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub hello: Option<HelloConfig>,
     pub num_epochs: usize,
     pub fitness: FitnessConfig,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub random_seed: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub push_vm: Option<PushVm>,
 }
 
@@ -78,6 +92,7 @@ pub enum Job {
 
 #[derive(Deserialize, Serialize)]
 pub struct PushVm {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_steps: Option<usize>,
     pub min_len: usize,
     pub max_len: usize,
@@ -89,6 +104,7 @@ pub struct FitnessConfig {
     pub target: f64,
     pub eval_by_case: bool,
     pub dynamic: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     priority: Option<String>,
     pub function: String,
     pub weighting: String,
@@ -96,6 +112,7 @@ pub struct FitnessConfig {
 
 #[derive(Deserialize, Serialize)]
 pub struct TournamentConfig {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tournament_size: Option<usize>,
     pub geographic_radius: usize,
     pub migration_rate: f64,
@@ -108,10 +125,14 @@ pub struct ObserverConfig {
     pub dump_population: bool,
     pub dump_soup: bool,
     pub window_size: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub report_every: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub dump_every: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub full_data_directory: Option<String>,
     data_directory: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub population_name: Option<String>,
 }
 
@@ -123,14 +144,16 @@ pub struct HelloConfig {
 #[derive(Deserialize, Serialize)]
 pub struct LinearGpConfig {
     pub max_steps: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub num_registers: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub return_registers: Option<usize>,
 }
 
 #[derive(Deserialize, Serialize)]
 pub struct RoperConfig {
-    #[serde(default)]
     pub use_push: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub gadget_file: Option<String>,
     #[serde(default)]
     pub output_registers: Vec<String>,
@@ -138,11 +161,13 @@ pub struct RoperConfig {
     pub input_registers: Vec<String>,
     #[serde(default)]
     pub randomize_registers: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub register_pattern_file: Option<String>,
     #[serde(skip)]
     pub parsed_register_patterns: Vec<RegisterPattern>,
-    #[serde(default = "Default::default")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub soup: Option<Vec<u64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub soup_size: Option<usize>,
     #[serde(default)]
     pub arch: Arch,
@@ -154,19 +179,22 @@ pub struct RoperConfig {
     pub num_emulators: usize,
     #[serde(default)]
     pub wait_limit: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_emu_steps: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub millisecond_timeout: Option<u64>,
-    #[serde(default = "Default::default")]
+    #[serde(default)]
     pub record_basic_blocks: bool,
-    #[serde(default = "Default::default")]
+    #[serde(default)]
     pub record_memory_writes: bool,
     #[serde(default)]
     pub emulator_stack_size: usize,
     pub binary_path: String,
-    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub ld_paths: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bad_bytes: Option<HashMap<String, u8>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub memory_pattern: Option<Vec<u8>>,
     #[serde(default)]
     pub break_on_calls: bool,
@@ -231,6 +259,7 @@ pub enum Problem {
 
 #[derive(Deserialize, Serialize)]
 pub struct RouletteConfig {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub weight_decay: Option<f64>,
 }
 
