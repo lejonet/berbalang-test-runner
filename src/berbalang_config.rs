@@ -165,7 +165,8 @@ pub struct RoperConfig {
     pub binary_path: String,
     #[serde(default)]
     pub ld_paths: Option<Vec<String>>,
-    pub bad_bytes: HashMap<String, u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bad_bytes: Option<HashMap<String, u8>>,
     pub memory_pattern: Option<Vec<u8>>,
     #[serde(default)]
     pub break_on_calls: bool,
@@ -198,7 +199,7 @@ impl Default for RoperConfig {
             emulator_stack_size: 0x1000,
             binary_path: "/bin/sh".to_string(),
             ld_paths: None,
-            bad_bytes: HashMap::<String, u8>::new(),
+            bad_bytes: None,
             break_on_calls: false,
             monitor_stack_writes: false,
         }
