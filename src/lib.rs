@@ -53,10 +53,12 @@ fn create_berbalang_config(name: &str, test: &TestSpecification) -> io::Result<(
     let mut file = File::open(&test.path_config)?;
     let mut content = String::new();
     file.read_to_string(&mut content)?;
+    println!("Config file content:\n{}", content);
     let mut test_config: berbalang_config::Config = toml::from_str(&content).unwrap();
     if let Some(test_length) = test.test_length.clone() {
         test_config.timeout = Some(test_length);
     }
+
     file = File::create(format!("./{}.toml", name))?;
     content = toml::to_string(&test_config).unwrap();
     write!(file, "{}", content)?;
