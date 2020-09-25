@@ -13,6 +13,10 @@ pub enum Arch {
     M68K,
 }
 
+impl Default for Arch {
+    fn default() -> Self { Arch::X86 }
+}
+
 // Directly copied from https://github.com/oblivia-simplex/unicorn-rs/blob/master/libunicorn-sys/src/unicorn_const.rs
 #[derive(Deserialize, Serialize)]
 pub enum Mode {
@@ -24,6 +28,10 @@ pub enum Mode {
     MCLASS = 1 << 5,
     V8 = 1 << 6,
     BIG_ENDIAN = 1 << 30,
+}
+
+impl Default for Mode {
+    fn default() -> Self { Mode::MODE_32 }
 }
 
 #[derive(Deserialize, Serialize)]
@@ -121,31 +129,80 @@ pub struct LinearGpConfig {
 
 #[derive(Deserialize, Serialize)]
 pub struct RoperConfig {
+    #[serde(default)]
     pub use_push: bool,
     pub gadget_file: Option<String>,
-    pub output_registers: Option<Vec<String>>,
-    pub input_registers: Option<Vec<String>>,
-    pub randomize_registers: Option<bool>,
+    #[serde(default)]
+    pub output_registers: Vec<String>,
+    #[serde(default)]
+    pub input_registers: Vec<String>,
+    #[serde(default)]
+    pub randomize_registers: bool,
     pub register_pattern_file: Option<String>,
-    pub parsed_register_patterns: Option<Vec<RegisterPattern>>,
+    #[serde(skip)]
+    pub parsed_register_patterns: Vec<RegisterPattern>,
+    #[serde(default = "Default::default")]
     pub soup: Option<Vec<u64>>,
     pub soup_size: Option<usize>,
-    pub arch: Option<Arch>,
-    pub mode: Option<Mode>,
-    pub num_workers: Option<usize>,
-    pub num_emulators: Option<usize>,
-    pub wait_limit: Option<u64>,
+    #[serde(default)]
+    pub arch: Arch,
+    #[serde(default)]
+    pub mode: Mode,
+    #[serde(default)]
+    pub num_workers: usize,
+    #[serde(default)]
+    pub num_emulators: usize,
+    #[serde(default)]
+    pub wait_limit: u64,
     pub max_emu_steps: Option<usize>,
     pub millisecond_timeout: Option<u64>,
-    pub record_basic_blocks: Option<bool>,
-    pub record_memory_writes: Option<bool>,
-    pub emulator_stack_size: Option<usize>,
+    #[serde(default = "Default::default")]
+    pub record_basic_blocks: bool,
+    #[serde(default = "Default::default")]
+    pub record_memory_writes: bool,
+    #[serde(default)]
+    pub emulator_stack_size: usize,
     pub binary_path: String,
+    #[serde(default)]
     pub ld_paths: Option<Vec<String>>,
-    pub bad_bytes: Option<HashMap<String, u8>>,
+    pub bad_bytes: HashMap<String, u8>,
     pub memory_pattern: Option<Vec<u8>>,
-    pub break_on_calls: Option<bool>,
-    pub monitor_stack_writes: Option<bool>,
+    #[serde(default)]
+    pub break_on_calls: bool,
+    #[serde(default)]
+    pub monitor_stack_writes: bool,
+}
+
+impl Default for RoperConfig {
+    fn default() -> Self {
+        Self {
+            use_push: false,
+            gadget_file: None,
+            output_registers: vec![],
+            input_registers: vec![],
+            randomize_registers: false,
+            register_pattern_file: None,
+            parsed_register_patterns: vec![],
+            soup: None,
+            soup_size: None,
+            arch: Arch::X86,
+            mode: Mode::MODE_64,
+            memory_pattern: None,
+            num_workers: 8,
+            num_emulators: 8,
+            wait_limit: 500,
+            max_emu_steps: Some(0x10_000),
+            millisecond_timeout: Some(500),
+            record_basic_blocks: false,
+            record_memory_writes: false,
+            emulator_stack_size: 0x1000,
+            binary_path: "/bin/sh".to_string(),
+            ld_paths: None,
+            bad_bytes: HashMap::<String, u8>::new(),
+            break_on_calls: false,
+            monitor_stack_writes: false,
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize)]
