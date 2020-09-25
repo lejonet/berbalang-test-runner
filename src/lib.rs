@@ -1,7 +1,6 @@
 use serde::Deserialize;
 
 use std::{fmt, thread, io};
-use std::io::Read;
 use std::time::Duration;
 use std::process::{Command, Stdio};
 use std::sync::mpsc;
@@ -11,7 +10,8 @@ pub struct TestSpecification {
     pub name: String,
     pub test_cmd: String,
     pub nr_of_test_runs: u8,
-    pub test_length: u64,
+    pub test_length: Option<String>,
+    pub path_config: String,
 }
 
 #[derive(Deserialize)]
@@ -29,26 +29,24 @@ impl fmt::Display for TestOutline {
         }
         writeln!(f, "Tests: ")?;
         for test in &self.test_spec {
-            writeln!(f, "Test cmd: {}, Test length: {}, Amount of test runs: {}", test.test_cmd, test.test_length, test.nr_of_test_runs)?;
+            writeln!(f, "Test cmd: {}, Amount of test runs: {}", test.test_cmd, test.nr_of_test_runs)?;
         }
         Ok(())
     }
 }
 
-pub fn run(test_outline: TestOutline) {
+pub fn run(test_outline: TestOutline) -> Result<(), Box<dyn std::error::Error>>{
     let mut total_nr_of_test_runs= 0u16;
-    let mut total_run_time = 0u32;
     for test in &test_outline.test_spec {
        total_nr_of_test_runs += test.nr_of_test_runs as u16;
-       total_run_time += test.test_length as u32 * test.nr_of_test_runs as u32;
     }
 
-    println!("{}\nTotal amount of tests: {} Total run time: {} h", test_outline, total_nr_of_test_runs, total_run_time as f64/3600f64);
+    println!("{}\nTotal amount of tests: {}", test_outline, total_nr_of_test_runs);
 
-    run_tests(test_outline);
+    run_tests(test_outline)
 }
 
-fn run_tests(test_outline: TestOutline) {
+fn run_tests(test_outline: TestOutline) -> Result<(), Box<dyn std::error::Error>> {
     let mut create_container_args = vec!["copy", &test_outline.source_container, "placeholder-target-container"];
     for profile in &test_outline.container_profiles {
         create_container_args.push("-p");
@@ -56,35 +54,40 @@ fn run_tests(test_outline: TestOutline) {
     }
     println!("{:#?}", create_container_args);
     for test in &test_outline.test_spec {
-        let test_duration = Duration::new(test.test_length, 0);
         for test_nr in 0..test.nr_of_test_runs {
             let test_name = &format!("{}-{}", test.name, test_nr);
             let mut create_args = create_container_args.clone();
             create_args[2] = test_name;
             println!("{:#?}", create_args);
             println!("Copying {} to {}", test_outline.source_container, test_name);
-            lxc(&create_args);
+            lxc(&create_args)?;
             println!("Starting {} container", test_name);
-            lxc(&["start", test_name]);
+            lxc(&["start", test_name])?;
             thread::sleep(Duration::new(5,0));
-            println!("Executing command '{}' in {} container and letting it run for {} s", test.test_cmd, test_name, test.test_length);
+            println!("Executing command '{}' in {} container", test.test_cmd, test_name);
             let (tx, rx) = mpsc::channel();
-            tx.send((test_name.clone(), test.test_cmd.clone()));
+            tx.send((test_name.clone(), test.test_cmd.clone()))?;
             let test_thread = thread::spawn(move || {
                 let (name, cmd) = rx.recv().unwrap();
                 println!("This is {}, with cmd {}", name, cmd);
                 let container_cmd = format!("echo {} >> thing", cmd);
-                lxc(&["exec", &name, "--", &container_cmd]);
-                //lxc(&["exec", test_name, "--", cmd])
+                match lxc(&["exec", &name, "--", &container_cmd]) {
+                    Ok(()) => (),
+                    Err(e) => {
+                        println!("Something went wrong when executing {} in {}: {}", cmd, name, e);
+                        ()
+                    }
+                }
             });
             test_thread.join().unwrap();
-            lxc(&["stop", &test_name]);
+            lxc(&["stop", &test_name])?;
         }
     }
+    Ok(())
 }
 
 fn lxc(args: &[&str]) -> io::Result<()> {
-    let mut output = Command::new("lxc")
+    let output = Command::new("lxc")
         .args(args)
         .stderr(Stdio::piped())
         .stdout(Stdio::piped())

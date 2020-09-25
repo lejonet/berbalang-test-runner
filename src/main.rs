@@ -9,7 +9,11 @@ fn main() -> std::io::Result<()> {
     file.read_to_string(&mut content)?;
     let test_specification: TestOutline = toml::from_str(&content).unwrap();
 
-    berbalang_test_runner::run(test_specification);
-
-    Ok(())
+    match berbalang_test_runner::run(test_specification) {
+        Ok(()) => Ok(()),
+        Err(e) => {
+            println!("Something went wrong when running tests: {}", e);
+            Ok(())
+        }
+    }
 }
