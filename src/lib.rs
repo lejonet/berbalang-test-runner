@@ -1,4 +1,5 @@
 use serde::Deserialize;
+pub mod berbalang_config;
 
 use std::fs::File;
 use std::io::{Read, Write};
@@ -6,7 +7,6 @@ use std::{fmt, thread, io};
 use std::time::Duration;
 use std::process::{Command, Stdio};
 use std::sync::mpsc;
-use test::ColorConfig;
 
 #[derive(Deserialize)]
 pub struct TestSpecification {
@@ -53,11 +53,11 @@ fn create_berbalang_config(name: &str, test: &TestSpecification) -> io::Result<(
     let mut file = File::open(&test.path_config)?;
     let mut content = String::new();
     file.read_to_string(&mut content)?;
-    let mut test_config: Config = toml::from_str(&content).unwrap();
+    let mut test_config: berbalang_config::Config = toml::from_str(&content).unwrap();
     if let Some(test_length) = test.test_length.clone() {
-        test_config.timeout = test_length;
+        test_config.timeout = Some(test_length);
     }
-    file = File::create(format!("./{}.toml", test_name))?;
+    file = File::create(format!("./{}.toml", name))?;
     content = toml::to_string(&test_config).unwrap();
     write!(file, "{}", content)?;
 
@@ -82,9 +82,14 @@ fn run_tests(test_outline: TestOutline) -> Result<(), Box<dyn std::error::Error>
             println!("{:#?}", create_args);
             println!("Copying {} to {}", test_outline.source_container, test_name);
             lxc(&create_args)?;
+
             println!("Starting {} container", test_name);
             lxc(&["start", test_name])?;
             thread::sleep(Duration::new(5,0));
+
+            println!("Pushing {}.toml to {} as ~/config.toml", test_name, test_name);
+            lxc(&["file", "push", &format!("./{}.toml", test_name), &format!("{}/config.toml", test_name)])?;
+
             println!("Executing command '{}' in {} container", test.test_cmd, test_name);
             let (tx, rx) = mpsc::channel();
             tx.send((test_name.clone(), test.test_cmd.clone()))?;
