@@ -1,9 +1,12 @@
 use serde::Deserialize;
 
+use std::fs::File;
+use std::io::{Read, Write};
 use std::{fmt, thread, io};
 use std::time::Duration;
 use std::process::{Command, Stdio};
 use std::sync::mpsc;
+use test::ColorConfig;
 
 #[derive(Deserialize)]
 pub struct TestSpecification {
@@ -46,6 +49,21 @@ pub fn run(test_outline: TestOutline) -> Result<(), Box<dyn std::error::Error>>{
     run_tests(test_outline)
 }
 
+fn create_berbalang_config(name: &str, test: &TestSpecification) -> io::Result<()> {
+    let mut file = File::open(&test.path_config)?;
+    let mut content = String::new();
+    file.read_to_string(&mut content)?;
+    let mut test_config: Config = toml::from_str(&content).unwrap();
+    if let Some(test_length) = test.test_length.clone() {
+        test_config.timeout = test_length;
+    }
+    file = File::create(format!("./{}.toml", test_name))?;
+    content = toml::to_string(&test_config).unwrap();
+    write!(file, "{}", content)?;
+
+    Ok(())
+}
+
 fn run_tests(test_outline: TestOutline) -> Result<(), Box<dyn std::error::Error>> {
     let mut create_container_args = vec!["copy", &test_outline.source_container, "placeholder-target-container"];
     for profile in &test_outline.container_profiles {
@@ -56,6 +74,9 @@ fn run_tests(test_outline: TestOutline) -> Result<(), Box<dyn std::error::Error>
     for test in &test_outline.test_spec {
         for test_nr in 0..test.nr_of_test_runs {
             let test_name = &format!("{}-{}", test.name, test_nr);
+
+            create_berbalang_config(test_name, test)?;
+
             let mut create_args = create_container_args.clone();
             create_args[2] = test_name;
             println!("{:#?}", create_args);
