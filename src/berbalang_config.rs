@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 // Directly copied from https://github.com/oblivia-simplex/unicorn-rs/blob/master/libunicorn-sys/src/unicorn_const.rs
 #[derive(Deserialize, Serialize)]
