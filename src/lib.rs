@@ -1,12 +1,12 @@
 use serde::Deserialize;
-pub mod berbalang_config;
-
 use std::fs::File;
 use std::io::{Read, Write};
 use std::{fmt, thread, io};
 use std::time::Duration;
 use std::process::{Command, Stdio};
 use std::sync::mpsc;
+
+use berbalib::configure as berbalang_config;
 
 #[derive(Deserialize)]
 pub struct TestSpecification {

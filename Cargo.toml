@@ -7,5 +7,9 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-toml = "~0.5.5"
+toml = "0.5.6"
 serde = { version = "~1.0", features = ["derive"] }
+berbalang = { git = "https://github.com/oblivia-simplex/berbalang" }
+
+#[patch."https://github.com/oblivia-simplex/berbalang".berbalang]
+#path = "../berbalang/"
