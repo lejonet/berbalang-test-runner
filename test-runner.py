@@ -13,7 +13,7 @@ class TestSpecification():
         self.path_config = kwargs.get('path_config')
 
     def __str__(self):
-        return f"TestSpecification(name={self.name}, test_cmd={self.test_cmd}, nr_of_test_runs={self.nr_of_test_runs}, test_length={self.test_length}, path_config={self.path_config})"
+        return f"TestSpecification(name='{self.name}', test_cmd='{self.test_cmd}', nr_of_test_runs={self.nr_of_test_runs}, test_length='{self.test_length}', path_config='{self.path_config}')"
 
 class TestOutline():
     def __init__(self, **kwargs):
@@ -24,7 +24,7 @@ class TestOutline():
             self.test_spec.append(TestSpecification(**test))
 
     def __str__(self):
-        representation = f"TestOutline(source_container={self.source_container}, container_profiles={self.container_profiles}"
+        representation = f"TestOutline(source_container='{self.source_container}', container_profiles={self.container_profiles}"
         for test in self.test_spec:
             representation += f", {test}"
         return representation
