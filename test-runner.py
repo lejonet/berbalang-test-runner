@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import toml, argparse
+import toml, argparse, pylxd
 from sys import argv
 
 class TestSpecification():
@@ -29,8 +29,26 @@ class TestOutline():
             representation += f", {test}"
         return representation
 
+def create_berbalang_config(test_name, test):
+    with open(test.path_config, "r") as f_ro:
+        with open(f"{test_name}-config.toml", "w") as f_wo:
+            source_conf = toml.load(f_ro)
+            source_conf['timeout'] = test.test_length
+            dest_conf = toml.dump(source_conf, f_wo)
+
 def run_tests(test_outline):
-    pass
+    client = pylxd.Client()
+    profiles = [client.profiles.get(profile) for profile in test_outline.container_profiles]
+    for test in test_outline.test_spec:
+        for test_nr in range(0..test.nr_of_test_runs):
+            test_name = f"{test.name}-{test_nr}"
+
+            create_berbalang_config(test_name, test)
+
+            print(f"Copying {test_outline.source_container} to {test_name}")
+            instance = client.containers.create({'name': test_name, 'source': {'type': 'copy', 'alias': test_outline.source_container}}, wait=True)
+            instance.start()
+
 
 def run(test_outline):
     test_outline = TestOutline(**test_outline)
