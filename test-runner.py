@@ -39,7 +39,7 @@ def create_berbalang_config(test_name, test):
 def run_tests(test_outline):
     client = pylxd.Client()
     for test in test_outline.test_spec:
-        for test_nr in range(0..test.nr_of_test_runs):
+        for test_nr in range(0,test.nr_of_test_runs):
             test_name = f"{test.name}-{test_nr}"
 
             create_berbalang_config(test_name, test)
