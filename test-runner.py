@@ -31,7 +31,10 @@ class TestOutline():
 
 def run_tests(test_specification):
     test_outline = TestOutline(**test_specification)
-    print(test_outline)
+    print("Test outline:")
+    print(f"Source container: {test_outline.source_container}, Container profiles: {test_outline.container_profiles}")
+    for test in test_outline.test_spec:
+        print(test)
 
 def run():
     parser = argparse.ArgumentParser(description='Run a bunch of berbalang tests in LXC containers')
