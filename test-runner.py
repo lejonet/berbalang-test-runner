@@ -38,7 +38,6 @@ def create_berbalang_config(test_name, test):
 
 def run_tests(test_outline):
     client = pylxd.Client()
-    profiles = [client.profiles.get(profile) for profile in test_outline.container_profiles]
     for test in test_outline.test_spec:
         for test_nr in range(0..test.nr_of_test_runs):
             test_name = f"{test.name}-{test_nr}"
@@ -46,7 +45,8 @@ def run_tests(test_outline):
             create_berbalang_config(test_name, test)
 
             print(f"Copying {test_outline.source_container} to {test_name}")
-            instance = client.containers.create({'name': test_name, 'source': {'type': 'copy', 'alias': test_outline.source_container}}, wait=True)
+            instance_config = {'name': test_name, 'profiles': test_outline.container_profiles, 'source': {'type': 'copy', 'alias': test_outline.source_container}}
+            instance = client.containers.create(instance_config, wait=True)
             instance.start()
 
 
