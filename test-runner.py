@@ -29,21 +29,29 @@ class TestOutline():
             representation += f", {test}"
         return representation
 
-def run_tests(test_specification):
-    test_outline = TestOutline(**test_specification)
+def run_tests(test_outline):
+    pass
+
+def run(test_outline):
+    test_outline = TestOutline(**test_outline)
     print("Test outline:")
     print(f"Source container: {test_outline.source_container}, Container profiles: {test_outline.container_profiles}")
+    total_nr_of_tests = 0
     for test in test_outline.test_spec:
         print(test)
+        total_nr_of_tests += test.nr_of_test_runs
 
-def run():
+    print(f"Amount of tests: {total_nr_of_tests}")
+    run_tests(test_outline)
+
+def main():
     parser = argparse.ArgumentParser(description='Run a bunch of berbalang tests in LXC containers')
     parser.add_argument('test_specification', metavar='f', type=str, nargs='?', default="test_specification.toml", help="path to the test specification TOML file")
     args = parser.parse_args()
     with open(args.test_specification, "r") as f:
-        parsed_test_specification = toml.load(f)
+        parsed_test_outline = toml.load(f)
 
-        run_tests(parsed_test_specification)
+        run(parsed_test_outline)
 
 if __name__ == '__main__':
-    run()
+    main()
