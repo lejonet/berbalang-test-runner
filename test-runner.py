@@ -44,8 +44,9 @@ def run_tests(test_outline):
 
             create_berbalang_config(test_name, test)
 
-            print(f"Copying {test_outline.source_container} to {test_name}")
-            instance_config = {'name': test_name, 'profiles': test_outline.container_profiles, 'source': {'type': 'copy', 'alias': test_outline.source_container}}
+            print(f"Creating {test_outline.source_container} to {test_name}")
+            instance_config = {'name': test_name, 'profiles': test_outline.container_profiles, 'source': {'type': 'image', 'alias': test_outline.source_container}}
+            print(instance_config)
             instance = client.containers.create(instance_config, wait=True)
             instance.start()
 
