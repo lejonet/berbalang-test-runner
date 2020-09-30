@@ -3,6 +3,7 @@
 
 import toml, argparse, pylxd
 from sys import argv
+from os import mkdir
 
 class TestSpecification():
     def __init__(self, **kwargs):
@@ -20,29 +21,32 @@ class TestOutline():
         self.source_container = kwargs.get('source_container')
         self.container_profiles = kwargs.get('container_profiles')
         self.nodes = kwargs.get('nodes', list())
+        self.output_dir = kwargs.get('output_dir')
         self.test_spec = list()
         for test in kwargs.get('test_spec'):
             self.test_spec.append(TestSpecification(**test))
 
     def __str__(self):
-        representation = f"TestOutline(source_container='{self.source_container}', container_profiles={self.container_profiles}"
+        representation = f"TestOutline(source_container='{self.source_container}', container_profiles={self.container_profiles}, output_dir='{self.output_dir}'"
         for test in self.test_spec:
             representation += f", {test}"
         return representation
 
-def create_berbalang_config(test_name, test):
+def create_berbalang_config(test_name, test, output_dir):
+    print(f"Creating directory {output_dir}/{test_name}")
+    mkdir(f"{output_dir}/{test_name}", 0755)
     with open(test.path_config, "r") as f_ro:
-        with open(f"{test_name}-config.toml", "w") as f_wo:
+        with open(f"{output_dir}/{test_name}/config.toml", "w") as f_wo:
             source_conf = toml.load(f_ro)
             source_conf['timeout'] = test.test_length
             dest_conf = toml.dump(source_conf, f_wo)
 
-def execute_command(instance, test_cmd):
+def execute_command(instance, test_cmd, output_dir):
     print(f"Instance: {instance.name}, Cmd: {test_cmd}")
     (exit_code, output_stdout, output_stderr) = instance.execute(test_cmd)
-    with open(f"{instance.name}.stdout", "w") as stdout:
-        with open(f"{instance.name}.stderr", "w") as stderr:
-            with open(f"{instance.name}.exitcode", "w") as exitcode:
+    with open(f"{output_dir}/{instance.name}/stdout", "w") as stdout:
+        with open(f"{output_dir}/{instance.name}/stderr", "w") as stderr:
+            with open(f"{output_dir}/{instance.name}/exitcode", "w") as exitcode:
                 if output_stdout == '':
                     stdout.close()
                 else:
@@ -56,13 +60,13 @@ def execute_command(instance, test_cmd):
                 exitcode.write(f"{exit_code}")
     instance.stop()
 
-def run_test(test, source_container, container_profiles, client, target):
+def run_test(test, test_outline, client, target):
     for test_nr in range(0,test.nr_of_test_runs):
         test_name = f"{test.name}-{test_nr}"
 
-        create_berbalang_config(test_name, test)
+        create_berbalang_config(test_name, test, test_outline.output_dir)
 
-        print(f"Creating {source_container} to {test_name}")
+        print(f"Creating {test_outline.source_container} to {test_name}")
         source = None
         if not target:
             source = {'type': 'image', 'alias': source_container}
@@ -70,17 +74,18 @@ def run_test(test, source_container, container_profiles, client, target):
         print(instance_config)
         instance = client.containers.create(instance_config, wait=True)
         instance.start()
-        print(f"Pushing config file {test_name}-config.toml to {test_name}")
-        with open(f"{test_name}-config.toml") as f:
+        print(f"Pushing config file {test_outline.output_dir}/{test_name}/config.toml to {test_name}")
+        with open(f"{test_outline.output_dir}/{test_name}/config.toml") as f:
             instance.files.put("/root/config.toml", f)
+
         print(f"Executing command {test.test_cmd} in container {test_name}")
-        execute_command(instance, test.test_cmd)
+        execute_command(instance, test.test_cmd, test.output_dir)
 
 def run_tests(test_outline):
     if not test_outline.nodes:
         client = pylxd.Client() 
         for test in test_outline.test_spec:
-            run_test(test, test_outline.source_container, test_outline.container_profiles, client, None)
+            run_test(test, test_outline, client, None)
     else:
         pass
 
