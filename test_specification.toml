@@ -1,0 +1,36 @@
+# All variables in this file are mandatory
+
+source_container = "berbalang" # Name of the alias of image that is the base for the container that will run the test
+# List of names of profiles that will be applied to each test container
+container_profiles = [
+    "default",
+    "berbalang"
+]
+
+# Table of test specifications, these will be executed sequentially
+[[test_spec]]
+name = "derp-test" # Will be the base name of the container and output files
+# A list of the components of the command to be executed.
+# Follows the same format as Subprocess.popen accepts
+test_cmd = ["something", "to", "execute"]
+# How many test runs of this test should be run, each test gets its own, clean container to run in
+nr_of_test_runs = 4
+# How long the test should run, will be inputted into the berbalang config.toml file
+test_length = "5 s"
+# Path on the host to the template config.toml to be used by berbalang in the container
+path_config = "config.toml"
+
+[[test_spec]]
+name = "herp-test"
+test_cmd = ["something", "to", "execute"]
+nr_of_test_runs = 5
+test_length = "10 s"
+path_config = "config.toml"
+
+[[test_spec]]
+name = "silly-test"
+test_cmd = ["something", "to", "execute"]
+nr_of_test_runs = 2
+test_length = "15 s"
+path_config = "config.toml"
+
