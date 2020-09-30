@@ -35,6 +35,10 @@ def create_berbalang_config(test_name, test):
             source_conf = toml.load(f_ro)
             source_conf['timeout'] = test.test_length
             dest_conf = toml.dump(source_conf, f_wo)
+def run_test(instance, test_cmd):
+    print(f"Instance: {instance.name}, Cmd: {test_cmd}")
+    output = instance.execute(["ls", "-l", "-a", "-h", "config.toml"])
+    print(output)
 
 def run_tests(test_outline):
     client = pylxd.Client()
@@ -49,6 +53,11 @@ def run_tests(test_outline):
             print(instance_config)
             instance = client.containers.create(instance_config, wait=True)
             instance.start()
+            print(f"Pushing config file {test_name}-config.toml to {test_name}")
+            with open(f"{test_name}-config.toml") as f:
+                instance.files.put("/root/config.toml", f)
+            print(f"Executing command {test.test_cmd} in container {test_name}")
+            run_test(instance, test.test_cmd)
 
 
 def run(test_outline):
