@@ -78,7 +78,7 @@ def run_test(test, source_container, container_profiles, client, target):
 
 def run_tests(test_outline):
     if not test_outline.nodes:
-        client = pylxd.client() 
+        client = pylxd.Client() 
         for test in test_outline.test_spec:
             run_test(test, test_outline.source_container, test_outline.container_profiles, client, None)
     else:
