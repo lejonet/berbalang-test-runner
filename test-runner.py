@@ -51,7 +51,7 @@ def run_test(instance, test_cmd):
                 else:
                     stderr.write(output_stderr)
                
-               exitcode.write(exit_code)
+                exitcode.write(exit_code)
     instance.stop()
 
 def run_tests(test_outline):
