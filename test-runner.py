@@ -79,7 +79,7 @@ def run_test(test, test_outline, client, target):
             instance.files.put("/root/config.toml", f)
 
         print(f"Executing command {test.test_cmd} in container {test_name}")
-        execute_command(instance, test.test_cmd, test.output_dir)
+        execute_command(instance, test.test_cmd, test_outline.output_dir)
 
 def run_tests(test_outline):
     if not test_outline.nodes:
