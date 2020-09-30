@@ -56,7 +56,7 @@ def execute_command(instance, test_cmd):
                 exitcode.write(f"{exit_code}")
     instance.stop()
 
-def run_test(test, source_container, container_profiles, target):
+def run_test(test, source_container, container_profiles, client, target):
     for test_nr in range(0,test.nr_of_test_runs):
         test_name = f"{test.name}-{test_nr}"
 
@@ -78,8 +78,9 @@ def run_test(test, source_container, container_profiles, target):
 
 def run_tests(test_outline):
     if not test_outline.nodes:
+        client = pylxd.client() 
         for test in test_outline.test_spec:
-            run_test(test, test_outline.source_container, test_outline.container_profiles, None)
+            run_test(test, test_outline.source_container, test_outline.container_profiles, client, None)
     else:
         pass
 
