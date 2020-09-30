@@ -47,16 +47,8 @@ def execute_command(instance, test_cmd, output_dir):
     with open(f"{output_dir}/{instance.name}/stdout", "w") as stdout:
         with open(f"{output_dir}/{instance.name}/stderr", "w") as stderr:
             with open(f"{output_dir}/{instance.name}/exitcode", "w") as exitcode:
-                if output_stdout == '':
-                    stdout.close()
-                else:
-                    stdout.write(output_stdout)
-
-                if output_stderr == '':
-                    stderr.close()
-                else:
-                    stderr.write(output_stderr)
-               
+                stdout.write(output_stdout)
+                stderr.write(output_stderr)
                 exitcode.write(f"{exit_code}")
     instance.stop()
 
