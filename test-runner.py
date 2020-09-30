@@ -34,7 +34,7 @@ class TestOutline():
 
 def create_berbalang_config(test_name, test, output_dir):
     print(f"Creating directory {output_dir}/{test_name}")
-    mkdir(f"{output_dir}/{test_name}", 0755)
+    mkdir(f"{output_dir}/{test_name}", 0o755)
     with open(test.path_config, "r") as f_ro:
         with open(f"{output_dir}/{test_name}/config.toml", "w") as f_wo:
             source_conf = toml.load(f_ro)
