@@ -34,7 +34,7 @@ class TestOutline():
 
 def create_berbalang_config(test_name, test, output_dir):
     print(f"Creating directory {output_dir}/{test_name}")
-    makedirs(f"{output_dir}/{test_name}", 0o755)
+    makedirs(f"{output_dir}/{test_name}", 0o755, exist_ok=True)
     with open(test.path_config, "r") as f_ro:
         with open(f"{output_dir}/{test_name}/config.toml", "w") as f_wo:
             source_conf = toml.load(f_ro)
@@ -69,7 +69,7 @@ def run_test(test, test_outline, client, target):
         print(f"Creating {test_outline.source_container} to {test_name}")
         source = None
         if not target:
-            source = {'type': 'image', 'alias': source_container}
+            source = {'type': 'image', 'alias': test_outline.source_container}
         instance_config = {'name': test_name, 'profiles': container_profiles, 'source': source}
         print(instance_config)
         instance = client.containers.create(instance_config, wait=True)
