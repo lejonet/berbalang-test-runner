@@ -70,7 +70,7 @@ def run_test(test, test_outline, client, target):
         source = None
         if not target:
             source = {'type': 'image', 'alias': test_outline.source_container}
-        instance_config = {'name': test_name, 'profiles': container_profiles, 'source': source}
+        instance_config = {'name': test_name, 'profiles': test_outline.container_profiles, 'source': source}
         print(instance_config)
         instance = client.containers.create(instance_config, wait=True)
         instance.start()
