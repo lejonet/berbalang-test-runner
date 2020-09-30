@@ -37,8 +37,22 @@ def create_berbalang_config(test_name, test):
             dest_conf = toml.dump(source_conf, f_wo)
 def run_test(instance, test_cmd):
     print(f"Instance: {instance.name}, Cmd: {test_cmd}")
-    output = instance.execute(["ls", "-l", "-a", "-h", "config.toml"])
-    print(output)
+    (exit_code, output_stdout, output_stderr) = instance.execute(test_cmd)
+    with open(f"{instance.name}.stdout", "w") as stdout:
+        with open(f"{instance.name}.stderr", "w") as stderr:
+            with open(f"{instance.name}.exitcode", "w") as exitcode:
+                if output_stdout == '':
+                    stdout.close()
+                else:
+                    stdout.write(output_stdout)
+
+                if output_stderr == '':
+                    stderr.close()
+                else:
+                    stderr.write(output_stderr)
+               
+               exitcode.write(exit_code)
+    instance.stop()
 
 def run_tests(test_outline):
     client = pylxd.Client()
