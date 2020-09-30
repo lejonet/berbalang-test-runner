@@ -50,7 +50,6 @@ def execute_command(instance, test_cmd, output_dir):
                 stdout.write(output_stdout)
                 stderr.write(output_stderr)
                 exitcode.write(f"{exit_code}")
-    instance.stop()
 
 def run_test(test, test_outline, client, target):
     for test_nr in range(0,test.nr_of_test_runs):
@@ -72,6 +71,8 @@ def run_test(test, test_outline, client, target):
 
         print(f"Executing command {test.test_cmd} in container {test_name}")
         execute_command(instance, test.test_cmd, test_outline.output_dir)
+        instance.stop()
+        instance.delete()
 
 def run_tests(test_outline):
     if not test_outline.nodes:
