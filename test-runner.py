@@ -19,6 +19,7 @@ class TestOutline():
     def __init__(self, **kwargs):
         self.source_container = kwargs.get('source_container')
         self.container_profiles = kwargs.get('container_profiles')
+        self.nodes = kwargs.get('nodes', list())
         self.test_spec = list()
         for test in kwargs.get('test_spec'):
             self.test_spec.append(TestSpecification(**test))
@@ -35,7 +36,8 @@ def create_berbalang_config(test_name, test):
             source_conf = toml.load(f_ro)
             source_conf['timeout'] = test.test_length
             dest_conf = toml.dump(source_conf, f_wo)
-def run_test(instance, test_cmd):
+
+def execute_command(instance, test_cmd):
     print(f"Instance: {instance.name}, Cmd: {test_cmd}")
     (exit_code, output_stdout, output_stderr) = instance.execute(test_cmd)
     with open(f"{instance.name}.stdout", "w") as stdout:
@@ -54,25 +56,32 @@ def run_test(instance, test_cmd):
                 exitcode.write(f"{exit_code}")
     instance.stop()
 
+def run_test(test, source_container, container_profiles, target):
+    for test_nr in range(0,test.nr_of_test_runs):
+        test_name = f"{test.name}-{test_nr}"
+
+        create_berbalang_config(test_name, test)
+
+        print(f"Creating {source_container} to {test_name}")
+        source = None
+        if not target:
+            source = {'type': 'image', 'alias': source_container}
+        instance_config = {'name': test_name, 'profiles': container_profiles, 'source': source}
+        print(instance_config)
+        instance = client.containers.create(instance_config, wait=True)
+        instance.start()
+        print(f"Pushing config file {test_name}-config.toml to {test_name}")
+        with open(f"{test_name}-config.toml") as f:
+            instance.files.put("/root/config.toml", f)
+        print(f"Executing command {test.test_cmd} in container {test_name}")
+        execute_command(instance, test.test_cmd)
+
 def run_tests(test_outline):
-    client = pylxd.Client()
-    for test in test_outline.test_spec:
-        for test_nr in range(0,test.nr_of_test_runs):
-            test_name = f"{test.name}-{test_nr}"
-
-            create_berbalang_config(test_name, test)
-
-            print(f"Creating {test_outline.source_container} to {test_name}")
-            instance_config = {'name': test_name, 'profiles': test_outline.container_profiles, 'source': {'type': 'image', 'alias': test_outline.source_container}}
-            print(instance_config)
-            instance = client.containers.create(instance_config, wait=True)
-            instance.start()
-            print(f"Pushing config file {test_name}-config.toml to {test_name}")
-            with open(f"{test_name}-config.toml") as f:
-                instance.files.put("/root/config.toml", f)
-            print(f"Executing command {test.test_cmd} in container {test_name}")
-            run_test(instance, test.test_cmd)
-
+    if not test_outline.nodes:
+        for test in test_outline.test_spec:
+            run_test(test, test_outline.source_container, test_outline.container_profiles, None)
+    else:
+        pass
 
 def run(test_outline):
     test_outline = TestOutline(**test_outline)
