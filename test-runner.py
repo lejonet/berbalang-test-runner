@@ -64,7 +64,7 @@ def run_test(test, test_outline, client, target):
         instance_config = {'name': test_name, 'profiles': test_outline.container_profiles, 'source': source}
         print(instance_config)
         instance = client.containers.create(instance_config, wait=True)
-        instance.start()
+        instance.start(wait=True)
         print(f"Pushing config file {test_outline.output_dir}/{test_name}/config.toml to {test_name}")
         with open(f"{test_outline.output_dir}/{test_name}/config.toml") as f:
             instance.files.put("/root/config.toml", f)
