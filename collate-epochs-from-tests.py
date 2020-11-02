@@ -7,6 +7,10 @@ parser = argparse.ArgumentParser(description='Parse the directories that ROPER c
 parser.add_argument('start_directory', metavar='f', type=str, nargs='?', help="path to the directory that holds the output from ROPER tests")
 args = parser.parse_args()
 
+if not args.start_directory:
+    print("You need to specify a start directory")
+    sys.exit(1)
+
 start_directory = args.start_directory
 
 dirs = os.listdir(start_directory)
